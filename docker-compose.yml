@@ -14,7 +14,7 @@ services:
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=nestjs
     networks:
-      - postgres
+      - nest-chat-network
 
   pgadmin:
     links:
@@ -31,8 +31,73 @@ services:
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=admin
     networks:
+      - nest-chat-network
+
+    # App service
+  
+  nestchat:
+    # application rely on redis running
+    depends_on:
+      - redis
       - postgres
+    # this build context will take the commands from Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # image name
+    image: nestjs-intro-docker
+    # container name
+    container_name: nestchat
+    # always restart the container if it stops.
+    restart: always
+    # docker run -t is allow
+    tty: true
+    # application port, this is take value from env file
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    # working directory
+    working_dir: /var/www/nestjs-intro
+    # application environment
+    environment:
+      SERVICE_NAME: nestchat
+      SERVICE_TAGS: dev
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_HOST: ${REDIS_HOST}
+    # save (persist) data and also to share data between containers
+    volumes:
+      - ./:/var/www/nestjs-intro
+      - /var/www/nestjs-intro/node_modules
+      # application network, each container for a service joins this network
+    networks:
+      - nest-chat-network
+
+  redis:
+    # image name
+    image: redis:latest
+    # container name
+    container_name: redis
+    # execute the command once start redis container
+    command: [
+        "redis-server",
+        "--bind",
+        "redis",
+        "--port",
+        "6379"
+    ]
+    # save (persist) data and also to share data between containers
+    volumes:
+      - red_data:/var/lib/redis
+    # redis port, this is take value from env file
+    ports:
+      - '${REDIS_PORT}:${REDIS_PORT}'
+      # application network, each container for a service joins this network
+    networks:
+      - nest-chat-network
 
 networks:
-  postgres:
+  nest-chat-network:
     driver: bridge
+
+# save (persist) data
+volumes:
+  red_data: {}
