@@ -13,23 +13,5 @@ export default class MessagesController {
     return this.messagesService.getAllMessages();
   }
 
-  @Get(':id')
-  getMessageById(@Param('id') id: string) {
-    return this.messagesService.getMessageById(Number(id));
-  }
 
-  @Post()
-  async createMessage(@Body() message: CreateMessageDto) {
-    return this.messagesService.createMessage(message);
-  }
-/*
-  @Put(':id')
-  async replacePost(@Param('id') id: string, @Body() post: UpdatePostDto) {
-    return this.postsService.replacePost(Number(id), post);
-  }*/
-
-  @Delete(':id')
-  async deleteMessage(@Param('id') id: string) {
-    this.messagesService.deleteMessage(Number(id));
-  }
 }
